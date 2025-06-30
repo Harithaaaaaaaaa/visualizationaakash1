@@ -147,4 +147,5 @@ def update_dashboard(device_id, start_date, end_date):
 
 # Run
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT",8050))
+    app.run(host = "0.0.0.0",port=port,debug=True)
