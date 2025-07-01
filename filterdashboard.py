@@ -36,7 +36,7 @@ app.layout = html.Div([
         dcc.Dropdown(
             id='device-dropdown',
             options=[{"label": str(dev), "value": dev} for dev in sorted(data['device_id_id'].unique())],
-            value=data['device_id_id'].unique()[0]
+           
         ),
         html.Label("Select Date Range:"),
         dcc.DatePickerRange(
