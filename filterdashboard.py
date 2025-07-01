@@ -137,7 +137,7 @@ def update_dashboard(device_id, start_date, end_date):
 
     device_order = sorted(df_tags['device_id_id'].unique(), key=int)
 
-    fig_tags = px.bar(df_tags, x='device_id_id', y='tags_count', title='Tag Reads per Device')
+    fig_tags = px.bar(df_tags, x='device_id_id', y='tags_count', title='Tag Reads per Device',category_orders = {'device_id_id':device_order} )
 
     # Bar chart - Sessions
     df_sessions = df.groupby('device_id_id', as_index=False)['int_1'].nunique().rename(columns={'int_1': 'sessions'})
