@@ -133,6 +133,8 @@ def update_dashboard(device_id, start_date, end_date):
 
     # Bar chart - Tags count
     df_tags = df.groupby('device_id_id', as_index=False)['tags_count'].sum()
+    df_tags = df_tags.sort_values(by='device_id_id',ascending=True)
+
     fig_tags = px.bar(df_tags, x='device_id_id', y='tags_count', title='Tag Reads per Device')
 
     # Bar chart - Sessions
