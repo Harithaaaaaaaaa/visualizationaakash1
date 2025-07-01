@@ -77,7 +77,7 @@ def update_dashboard(device_id, start_date, end_date):
 
 
     df = data.copy()
-    print("data df :",df)
+    # print("data df :",df)
     
     if device_id:
         df = data[data['device_id_id'] == device_id]
