@@ -11,7 +11,8 @@ import json,os
 csv_path = os.path.join(os.path.dirname(__file__),"data","device_management_customerdevicedata.csv")
 data = pd.read_csv(csv_path)
 
-
+print("type of device id:",type(data['device_id_id']))
+print("data type device id:",data['device_id_id'].dtype)
 data['timestamp'] = data["json_1"].apply(lambda x: json.loads(x)['timestamp'] if isinstance(x,str) else x['timestamp'])
 
 data['timestamp'] = pd.to_datetime(data['timestamp'],utc=True)
@@ -21,7 +22,7 @@ if 'year_month_day' not in data.columns:
 
 data['tags_count'] = data['json_1'].apply(lambda x: len(json.loads(x)['tags']) if isinstance(x,str) else len(x['tags']))
 
-data['device_id_id']= data['device_id_id'].astype(str)
+
 
 app = dash.Dash(__name__)
 app.title = "RFID Dashboard"
@@ -77,7 +78,6 @@ def update_dashboard(device_id, start_date, end_date):
 
 
     df = data.copy()
-    # print("data df :",df)
     
     if device_id:
         df = data[data['device_id_id'] == device_id]
@@ -133,11 +133,13 @@ def update_dashboard(device_id, start_date, end_date):
 
     # Bar chart - Tags count
     df_tags = df.groupby('device_id_id', as_index=False)['tags_count'].sum()
-    df_tags = df_tags.sort_values(by='device_id_id',ascending=True)
+    df_tags['device_id_id']= df_tags['device_id_id'].astype(str)
+    
+    # df_tags = df_tags.sort_values(by='device_id_id',ascending=True)
+    # print("df tagsss:", df_tags)
+    # device_order = sorted(df_tags['device_id_id'].unique(), key=int)
 
-    device_order = sorted(df_tags['device_id_id'].unique(), key=int)
-
-    fig_tags = px.bar(df_tags, x='device_id_id', y='tags_count', title='Tag Reads per Device',category_orders = {'device_id_id':device_order} )
+    fig_tags = px.bar(df_tags, x='device_id_id', y='tags_count', title='Tag Reads per Device')
 
     # Bar chart - Sessions
     df_sessions = df.groupby('device_id_id', as_index=False)['int_1'].nunique().rename(columns={'int_1': 'sessions'})
@@ -148,8 +150,13 @@ def update_dashboard(device_id, start_date, end_date):
     fig_line = px.line(df_line, x='year_month_day', y='tags_count', title='Daily Tag Reads', markers=True)
 
     return kpis, fig_tags, fig_sessions, fig_line
-
+    # return kpis, fig_tags, fig_sessions
+# server
 # Run
 if __name__ == '__main__':
     port = int(os.environ.get("PORT",8050))
     app.run(host = "0.0.0.0",port=port,debug=True)
+
+# # local
+# if __name__ == '__main__':
+#     app.run(debug=True)
