@@ -143,6 +143,7 @@ def update_dashboard(device_id, start_date, end_date):
 
     # Bar chart - Sessions
     df_sessions = df.groupby('device_id_id', as_index=False)['int_1'].nunique().rename(columns={'int_1': 'sessions'})
+    df_sessions['device_id_id']= df_sessions['device_id_id'].astype(str)
     fig_sessions = px.bar(df_sessions, x='device_id_id', y='sessions', title='Sessions per Device', color_discrete_sequence=['red'])
 
     # Line chart - Time series
