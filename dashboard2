@@ -199,9 +199,13 @@ def update_dashboard( start_date, end_date):
 
     return  kpis, fig_line,  fig_month, fig_week, fig_year,fig_hour
 
-# Run
+# # Run
+# if __name__ == '__main__':
+#     app.run(debug=True)
+
+
+
+# server
 if __name__ == '__main__':
-    app.run(debug=True)
-
-
-
+    port = int(os.environ.get("PORT",8050))
+    app.run(host = "0.0.0.0",port=port,debug=True)
