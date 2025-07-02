@@ -5,8 +5,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 import json
 
-# Load and preprocess
-data = pd.read_csv(r"C:\Users\actionfi\Desktop\Projects\Aakash\visualization for tag\device_management_customerdevicedata.csv")
+
+csv_path = os.path.join(os.path.dirname(__file__),"data","device_management_customerdevicedata.csv")
+data = pd.read_csv(csv_path)
+
 data['timestamp'] = data["json_1"].apply(lambda x: json.loads(x)['timestamp'] if isinstance(x,str) else x['timestamp'])
 
 data['timestamp'] = pd.to_datetime(data['timestamp'],utc=True)
