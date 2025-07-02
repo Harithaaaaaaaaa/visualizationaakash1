@@ -1,0 +1,207 @@
+import dash
+from dash import dcc, html, Input, Output
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import json
+
+# Load and preprocess
+data = pd.read_csv(r"C:\Users\actionfi\Desktop\Projects\Aakash\visualization for tag\device_management_customerdevicedata.csv")
+data['timestamp'] = data["json_1"].apply(lambda x: json.loads(x)['timestamp'] if isinstance(x,str) else x['timestamp'])
+
+data['timestamp'] = pd.to_datetime(data['timestamp'],utc=True)
+# Extract extra columns if not already present
+if 'year_month_day' not in data.columns:
+    data['year_month_day'] = data['timestamp'].dt.to_period('D').astype(str)
+
+data['tags_count'] = data['json_1'].apply(lambda x: len(json.loads(x)['tags']) if isinstance(x,str) else len(x['tags']))
+
+data['device_id_id']= data['device_id_id'].astype(str)
+data['year'] = data['timestamp'].dt.year
+data['month'] = data['timestamp'].dt.month_name()
+data['day']=data['timestamp'].dt.day
+data['year_month'] = data['timestamp'].dt.to_period('M').astype(str)
+data['year_month_day'] = data['timestamp'].dt.to_period('D').astype(str)
+data['year_month_day_hour']=data['timestamp'].dt.to_period('h').astype(str)
+data['day_of_week'] = data['timestamp'].dt.day_name()
+data['hour'] = data['timestamp'].dt.hour
+# print("type of year:",type(data['year']))
+data = data.dropna(subset=['year'])
+
+# data['year']= data['year'].astype(int)
+data['year']=data['year'].round(0).astype(int)
+data['year']=data['year'].astype(str)
+
+# data['year']=int(data['year'])
+
+
+app = dash.Dash(__name__)
+app.title = "RFID Dashboard"
+
+
+app.layout = html.Div(
+    style={
+        'display': 'flex',
+        'height': '100vh',
+        'fontFamily': 'Arial, sans-serif'
+    },
+    children=[
+        # Sidebar
+        html.Div(
+            style={
+                'width': '20%',
+                'backgroundColor': '#f9f9f9',
+                'padding': '20px',
+                'boxShadow': '2px 0px 5px rgba(0,0,0,0.1)',
+                'overflowY': 'auto'
+            },
+            children=[
+                # html.H2("Filters"),
+                html.Label("Select Date Range:"),
+                dcc.DatePickerRange(
+                    id='date-picker',
+                    start_date=data['timestamp'].min().date(),
+                    end_date=data['timestamp'].max().date(),
+                    display_format='YYYY-MM-DD'
+                ),
+                html.Br(),
+                html.Br(),
+                html.H3("KPIs"),
+                html.Div(id='kpi-output', style={'display': 'flex', 'flexDirection': 'column', 'gap': '10px'})
+            ]
+        ),
+
+        # Main content
+        html.Div(
+            style={
+                'width': '80%',
+                'padding': '20px',
+                'overflowY': 'scroll'
+            },
+            children=[
+                html.H1("RFID Device Dashboard", style={'textAlign': 'center'}),
+                html.Div([
+                    dcc.Graph(id='line-tags')],
+                    style={
+                        'marginBottom': '20px'
+                    }),
+                
+                html.Div([
+                    dcc.Graph(id='bar-tags-month'),
+                    dcc.Graph(id='bar-tags-week'),                    
+                ],
+                style = {
+                    'display': 'flex',
+                    'gap':'20px'
+                }),
+
+                html.Div(
+                    [
+                        dcc.Graph(id='bar-tags-year',style={'flex':'1'}),
+                        dcc.Graph(id='line-hour',style={'flex':'2'}),
+                    ],
+                    style = {
+                        'display': 'flex',
+                        'gap':'20px'
+                        }
+                )        
+            ]
+        )
+    ]
+
+)
+
+
+# Callback
+@app.callback(
+    [
+     
+     Output('kpi-output', 'children'),
+     Output('line-tags', 'figure'),
+     Output('bar-tags-month','figure'),
+     Output('bar-tags-week','figure'),
+     Output('bar-tags-year','figure'),     
+     Output('line-hour', 'figure'),
+     ],
+    [
+     Input('date-picker', 'start_date'),
+     Input('date-picker', 'end_date')]
+)
+
+
+
+def update_dashboard( start_date, end_date):
+
+
+    df = data.copy()
+    # print("data df :",df)
+    
+
+    
+    if start_date:
+        df = data[data['timestamp'] >= pd.to_datetime(start_date).tz_localize('UTC')]
+    
+    if end_date:
+        df = data[data['timestamp'] <= pd.to_datetime(end_date).tz_localize('UTC')]
+
+
+    # KPIs
+    total_tags = df['tags_count'].sum()
+    total_sessions = df['int_1'].nunique()
+    total_success = (df['char_1'] == 'success').sum()
+    total_failures = (df['char_1'] != 'success').sum()
+    total_rows = len(df)
+    success_rate = (total_success / total_rows * 100) if total_rows else 0
+
+    kpis = [
+        html.Div([
+            html.H4("Total Tags", style={'margin': '0'}), html.P(f"{total_tags}", style={'fontSize': '20px', 'fontWeight': 'bold'})
+        ], style={'backgroundColor': '#f1f1f1', 'padding': '10px',  'textAlign': 'center'}),
+        html.Div([
+            html.H4("Sessions"), html.P(f"{total_sessions}")
+        ], style={'backgroundColor': '#f1f1f1', 'padding': '10px',  'textAlign': 'center'}),
+        html.Div([
+            html.H4("Successes"), html.P(f"{total_success}")
+        ], style={'backgroundColor': '#e0ffe0', 'padding': '10px',  'textAlign': 'center'}),
+        html.Div([
+            html.H4("Failures"), html.P(f"{total_failures}")
+        ], style={'backgroundColor': '#ffe0e0', 'padding': '10px',  'textAlign': 'center'}),
+        html.Div([
+            html.H4("Success Rate (%)"), html.P(f"{success_rate:.2f}")
+        ], style={'backgroundColor': '#f1f1f1', 'padding': '10px',  'textAlign': 'center'})
+    ]
+
+
+    # Line chart - Time series
+    df_line = df.groupby('year_month_day',as_index=False)['tags_count'].sum()
+    fig_line = px.line(df_line, x='year_month_day', y='tags_count', title='Daily Tag Reads', markers=True)
+
+    df_year = df.groupby('year',as_index=False)['tags_count'].sum()
+    fig_year = px.bar(df_year, x='year', y='tags_count', title='Year wise Tag Reads')
+
+    month_order = ["January", "February", "March", "April","May", "June", "July", "August","September", "October", "November", "December"]
+
+    df_month = df.groupby('month',as_index=False)['tags_count'].mean()
+    fig_month = px.bar(df_month, x='month', y='tags_count', title='Month wise average Tag Reads',category_orders={"month": month_order})
+
+    week_order = ["Monday", "Tuesday", "Wednesday", "Thursday","Friday","Saturday","Sunday"]
+    df_week = df.groupby('day_of_week',as_index=False)['tags_count'].mean()
+    fig_week = px.bar(df_week, x='day_of_week', y='tags_count', title='Week wise average Tag Reads',category_orders = {"day_of_week":week_order})
+
+    df_hour = df.groupby('hour',as_index=False)['tags_count'].sum()
+    fig_hour = px.line(df_hour, x='hour', y='tags_count', title='Hour wise Tag reads',markers =True)
+
+    fig_line.update_layout(template='plotly_white')    
+    fig_month.update_layout(template='plotly_white')
+    fig_week.update_layout(template='plotly_white')
+    fig_year.update_layout(template='plotly_white')
+    fig_hour.update_layout(template='plotly_white')
+
+    return  kpis, fig_line,  fig_month, fig_week, fig_year,fig_hour
+
+# Run
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
