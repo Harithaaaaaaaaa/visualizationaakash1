@@ -519,22 +519,22 @@ def update_dashboard( start_date, end_date,value):
 
         # Line chart - Time series
         # df_line = df.groupby('year_month_day',as_index=False)['cpu_usage'].mean()
-        fig_line = px.line(df_line, x='year_month_day', y=['cpu_usage', 'memory_usage', 'disk_usage', 'temperature', 'module_temperature'], title='Daily CPU Usage', markers=True)
+        fig_line = px.line(df_line, x='year_month_day', y=['cpu_usage', 'memory_usage', 'disk_usage', 'temperature', 'module_temperature'], title='Daily Health data', markers=True)
 
         # df_year = df.groupby('year',as_index=False)['cpu_usage'].mean()
-        fig_year = px.bar(df_year, x='year', y=['cpu_usage', 'memory_usage', 'disk_usage', 'temperature', 'module_temperature'], title='Year wise CPU Usage')
+        fig_year = px.bar(df_year, x='year', y=['cpu_usage', 'memory_usage', 'disk_usage', 'temperature', 'module_temperature'], title='Year wise Health Data',barmode='group')
 
         month_order = ["January", "February", "March", "April","May", "June", "July", "August","September", "October", "November", "December"]
 
         # df_month = df.groupby('month',as_index=False)['cpu_usage'].mean()
-        fig_month = px.bar(df_month, x='month', y=['cpu_usage', 'memory_usage', 'disk_usage', 'temperature', 'module_temperature'],barmode='stack', title='Month wise average CPU Usage',category_orders={"month": month_order})
+        fig_month = px.bar(df_month, x='month', y=['cpu_usage', 'memory_usage', 'disk_usage', 'temperature', 'module_temperature'],barmode='group', title='Month wise average Health Data',category_orders={"month": month_order})
 
         week_order = ["Monday", "Tuesday", "Wednesday", "Thursday","Friday","Saturday","Sunday"]
         # df_week = df.groupby('day_of_week',as_index=False)['cpu_usage'].mean()
-        fig_week = px.bar(df_week, x='day_of_week', y=['cpu_usage', 'memory_usage', 'disk_usage', 'temperature', 'module_temperature'], barmode='group',title='Week wise average CPU Usage',category_orders = {"day_of_week":week_order})
+        fig_week = px.bar(df_week, x='day_of_week', y=['cpu_usage', 'memory_usage', 'disk_usage', 'temperature', 'module_temperature'], barmode='group',title='Week wise average Health Data',category_orders = {"day_of_week":week_order})
 
         # df_hour = df.groupby('hour',as_index=False)['cpu_usage'].mean()
-        # fig_hour = px.line(df_hour, x='hour', y='cpu_usage', title='Hour wise CPU Usage',markers =True)
+        # fig_hour = px.line(df_hour, x='hour', y='cpu_usage', title='Hour wise Health Data',markers =True)
 
 
         fig_hour = px.line(df_hour, x='hour', y=['cpu_usage', 'memory_usage', 'disk_usage', 'temperature', 'module_temperature'],
