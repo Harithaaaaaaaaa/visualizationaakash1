@@ -37,7 +37,7 @@ data['year']=data['year'].astype(str)
 
 
 csv_path = os.path.join(os.path.dirname(__file__),"data","device_management_healthdata.csv")
-health_data_cleaned = pd.read_csv(csv_path)
+health_data = pd.read_csv(csv_path)
 
 health_data_cleaned = health_data.drop(['deleted_at','restored_at','created_at','updated_at','category_id','device_id_id','modified_by_id','modified_by_id','created_by_id','additional_data','transaction_id'],axis=1)
 health_data_cleaned['timestamp'] = pd.to_datetime(health_data_cleaned['timestamp'],utc=True)
